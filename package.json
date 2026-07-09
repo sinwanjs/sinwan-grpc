@@ -1,0 +1,63 @@
+{
+  "name": "sinwan-grpc",
+  "version": "0.1.0",
+  "description": "gRPC support package for sinwan-engine and sinwan-platform — implements GRPCProvider using @grpc/grpc-js",
+  "type": "module",
+  "exports": {
+    "types": "./dist/index.d.ts",
+    "default": "./dist/index.js"
+  },
+  "scripts": {
+    "test": "bun test --coverage",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "build": "bun run build.ts",
+    "prepublishOnly": "bun run typecheck && bun run clean && bun run build"
+  },
+  "peerDependencies": {
+    "sinwan-engine": "^1.0.0"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.14.4",
+    "@grpc/proto-loader": "^0.8.1",
+    "@grpc/reflection": "^1.0.4",
+    "@opentelemetry/api": "^1.9.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "sinwan-engine": "link:sinwan-engine"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CONTRIBUTING.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "sinwan-engine",
+    "bun",
+    "backend",
+    "framework",
+    "api",
+    "server",
+    "microservices",
+    "rest",
+    "websocket",
+    "tcp",
+    "udp",
+    "grpc",
+    "realtime",
+    "event-driven",
+    "sse",
+    "typescript"
+  ],
+  "author": "Mohammed Ben Cheikh",
+  "licenseFilename": "LICENSE",
+  "bugs": "https://github.com/sinwanjs/sinwan-grpc/issues",
+  "homepage": "https://grpc.sinwanjs.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sinwanjs/sinwan-grpc"
+  },
+  "license": "MIT"
+}

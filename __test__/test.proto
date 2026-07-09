@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package test.v1;
+
+// A simple service for testing all four RPC kinds.
+service TestService {
+  // Unary: request → response
+  rpc SayHello(HelloRequest) returns (HelloResponse);
+
+  // Server streaming: request → stream of responses
+  rpc StreamGreetings(HelloRequest) returns (stream HelloResponse);
+
+  // Client streaming: stream of requests → response
+  rpc CollectGreetings(stream HelloRequest) returns (CountResponse);
+
+  // Bidi streaming: stream of requests → stream of responses
+  rpc Chat(stream HelloRequest) returns (stream HelloResponse);
+}
+
+message HelloRequest {
+  string name = 1;
+}
+
+message HelloResponse {
+  string message = 1;
+}
+
+message CountResponse {
+  int32 count = 1;
+}
