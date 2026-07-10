@@ -14,15 +14,53 @@ const CERT_PATH = "/tmp/test-cert-rotation.pem";
 const CA_PATH = "/tmp/test-ca-rotation.pem";
 
 beforeAll(() => {
-  if (!fs.existsSync(KEY_PATH)) {
-    throw new Error(
-      "Test certs not found. Run: openssl req -x509 -newkey rsa:2048 -keyout /tmp/test-key-rotation.pem -out /tmp/test-cert-rotation.pem -days 1 -nodes -subj '/CN=localhost'",
-    );
+  if (!fs.existsSync(KEY_PATH) || !fs.existsSync(CERT_PATH)) {
+    Bun.spawnSync([
+      "openssl",
+      "req",
+      "-x509",
+      "-newkey",
+      "rsa:2048",
+      "-keyout",
+      KEY_PATH,
+      "-out",
+      CERT_PATH,
+      "-days",
+      "1",
+      "-nodes",
+      "-subj",
+      "/CN=localhost",
+    ]);
+  }
+  if (!fs.existsSync(CA_PATH)) {
+    Bun.spawnSync([
+      "openssl",
+      "req",
+      "-x509",
+      "-newkey",
+      "rsa:2048",
+      "-keyout",
+      "/tmp/test-ca-key-rotation.pem",
+      "-out",
+      CA_PATH,
+      "-days",
+      "1",
+      "-nodes",
+      "-subj",
+      "/CN=test-ca",
+    ]);
   }
 });
 
 afterAll(() => {
-  // Don't delete — they may be reused across test runs
+  for (const file of [
+    KEY_PATH,
+    CERT_PATH,
+    CA_PATH,
+    "/tmp/test-ca-key-rotation.pem",
+  ]) {
+    if (fs.existsSync(file)) fs.unlinkSync(file);
+  }
 });
 
 describe("readCertData", () => {
