@@ -41,6 +41,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     environment: release
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -55,12 +58,14 @@ jobs:
       - name: Build
         run: bun run build
 
+      - name: Setup Node for npm publish
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+
       - name: Publish to npm
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
-          bun publish --access public
+        run: npm publish --provenance --access public
 
   # ─── Create GitHub Release ─────────────────────────────────
   release:
