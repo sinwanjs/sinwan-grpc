@@ -25,7 +25,7 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "sinwan-engine": "^0.1.0"
+    "sinwan-engine": "^1.0.1"
   },
   "files": [
     "dist",
@@ -54,7 +54,7 @@
   "author": "Mohammed Ben Cheikh",
   "licenseFilename": "LICENSE",
   "bugs": "https://github.com/sinwanjs/sinwan-grpc/issues",
-  "homepage": "https://grpc.sinwanjs.com",
+  "homepage": "https://sinwanjs.com",
   "repository": {
     "type": "git",
     "url": "https://github.com/sinwanjs/sinwan-grpc"
