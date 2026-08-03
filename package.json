@@ -1,7 +1,16 @@
 {
   "name": "sinwan-grpc",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "gRPC support package for sinwan-engine and sinwan-platform — implements GRPCProvider using @grpc/grpc-js",
+  "author": "Mohammed Ben Cheikh",
+  "licenseFilename": "LICENSE",
+  "bugs": "https://github.com/sinwanjs/sinwan-grpc/issues",
+  "homepage": "https://sinwanjs.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sinwanjs/sinwan-grpc"
+  },
+  "license": "MIT",
   "type": "module",
   "exports": {
     "types": "./dist/index.d.ts",
@@ -15,7 +24,7 @@
     "prepublishOnly": "bun run typecheck && bun run clean && bun run build"
   },
   "peerDependencies": {
-    "sinwan-engine": ">=0.1.0"
+    "sinwan-engine": ">=1.1.0"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.14.4",
@@ -25,7 +34,7 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "sinwan-engine": "^1.0.1"
+    "sinwan-engine": "^1.1.0"
   },
   "files": [
     "dist",
@@ -50,14 +59,5 @@
     "event-driven",
     "sse",
     "typescript"
-  ],
-  "author": "Mohammed Ben Cheikh",
-  "licenseFilename": "LICENSE",
-  "bugs": "https://github.com/sinwanjs/sinwan-grpc/issues",
-  "homepage": "https://sinwanjs.com",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/sinwanjs/sinwan-grpc"
-  },
-  "license": "MIT"
+  ]
 }

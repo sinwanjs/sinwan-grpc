@@ -4,7 +4,7 @@
  * A thin, DX-focused adapter over @grpc/grpc-js:
  *  - loads services from .proto files with production-friendly defaults
  *  - supports unary, server-streaming, client-streaming, and bidi methods
- *  - runs each RPC through Sinwan's StepEngine and EventBus
+ *  - runs each RPC through Sinwan's EventBus (grpc:call / grpc:finish / grpc:error)
  *  - normalizes thrown values into gRPC status errors
  */
 
@@ -86,7 +86,7 @@ export type GRPCErrorHook = (
 ) => Promise<unknown | void> | unknown | void;
 
 export interface GRPCHooks {
-  /** Runs after the Sinwan StepEngine and before the method handler. */
+  /** Runs after the grpc:call bus event and before the method handler. */
   beforeCall?: GRPCHook;
   /** Runs after a successful method handler. */
   afterCall?: GRPCAfterHook;
@@ -940,7 +940,19 @@ export class GRPCRouter {
 
     try {
       await this.emitCallStart(runtime, ctx, info);
-      await this.runSinwanPipeline(runtime, ctx);
+
+      // A grpc:call listener may have rejected the call by setting a response
+      // or calling ctx.stop(). Check both before proceeding to the hooks.
+      if (ctx.hasResponded()) {
+        throw responseToGRPCError(ctx);
+      }
+      if (ctx.isStopped()) {
+        throw createGRPCError(
+          grpc.status.PERMISSION_DENIED,
+          "gRPC call stopped by a grpc:call listener.",
+        );
+      }
+
       await this.runBeforeHooks(ctx, info, entry, route);
 
       const runHandlerWithPropagation = (): Promise<T> => {
@@ -980,25 +992,6 @@ export class GRPCRouter {
       source: "grpc-router",
     });
     if (result === "STOP") ctx.stop();
-  }
-
-  private async runSinwanPipeline(
-    runtime: Runtime,
-    ctx: Context,
-  ): Promise<void> {
-    const result = runtime.engine.run(ctx, runtime.bus);
-    if (result instanceof Promise) await result;
-
-    if (ctx.hasResponded()) {
-      throw responseToGRPCError(ctx);
-    }
-
-    if (ctx.isStopped()) {
-      throw createGRPCError(
-        grpc.status.PERMISSION_DENIED,
-        "gRPC call stopped by Sinwan pipeline.",
-      );
-    }
   }
 
   private async runBeforeHooks(

@@ -2,26 +2,26 @@ import {
   Context,
   EventBus,
   ErrorHandler,
-  StepEngine,
+  HTTPRouter,
   Runtime,
 } from "sinwan-engine";
 import type { Server } from "bun";
 
 /**
  * Create a real Runtime instance for integration tests.
- * Uses actual StepEngine, EventBus, and ErrorHandler.
+ * Uses actual EventBus, ErrorHandler, and HTTPRouter.
  */
 export function createTestRuntime(): Runtime {
-  const engine = new StepEngine();
   const bus = new EventBus();
   const errorHandler = new ErrorHandler();
   const globalState = new Map<string, unknown>();
+  const httpRouter = new HTTPRouter();
 
   return new Runtime({
-    engine,
     bus,
     errorHandler,
     globalState,
+    httpRouter,
     maxPoolSize: 10,
   });
 }
@@ -33,7 +33,7 @@ export function createMockServer(): Server<unknown> {
   return {} as Server<unknown>;
 }
 
-export { Context, EventBus, ErrorHandler, StepEngine };
+export { Context, EventBus, ErrorHandler };
 
 // ─── Test for helpers ──────────────────────────────────────
 
@@ -51,10 +51,9 @@ describe("helpers", () => {
     expect(typeof server).toBe("object");
   });
 
-  test("re-exports Context, EventBus, ErrorHandler, StepEngine", () => {
+  test("re-exports Context, EventBus, ErrorHandler", () => {
     expect(Context).toBeDefined();
     expect(EventBus).toBeDefined();
     expect(ErrorHandler).toBeDefined();
-    expect(StepEngine).toBeDefined();
   });
 });

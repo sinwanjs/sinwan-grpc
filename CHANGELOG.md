@@ -2,6 +2,40 @@
 
 All notable changes to **sinwan-grpc** are documented in this file. The format follows [Keep a Changelog](https://keepachangelog.com/) and sinwan-grpc adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.1.1] — 2026-08-03 — Thin Adapter (StepEngine Removed)
+
+Removes the `StepEngine` dependency so the gRPC router is a thin adapter over `@grpc/grpc-js` that drives Sinwan's `EventBus` directly. This aligns `sinwan-grpc` with `sinwan-engine` v1.1.0, where `StepEngine` was removed in favor of router-driven event flows.
+
+### Changed — Core
+
+- **`GRPCRouter`** (`src/server.ts`) — RPCs now run through the `grpc:call` `EventBus` event instead of `runtime.engine.run()`. The `runSinwanPipeline` private method was removed; response/stop checks now run inline after `emitCallStart`
+- **`GRPCHooks.beforeCall`** JSDoc updated — now documented as running after the `grpc:call` bus event (previously "after the Sinwan StepEngine")
+- **Module header comment** (`src/server.ts`) — updated from "runs each RPC through Sinwan's StepEngine and EventBus" to "runs each RPC through Sinwan's EventBus (grpc:call / grpc:finish / grpc:error)"
+
+### Changed — Behavior
+
+- A `grpc:call` listener that calls `ctx.stop()` now produces `grpc.status.PERMISSION_DENIED` with the message "gRPC call stopped by a grpc:call listener." (previously "gRPC call stopped by Sinwan pipeline.")
+- A `grpc:call` listener that sets a response still triggers `responseToGRPCError`, preserving the 0.1.0 rejection contract
+
+### Changed — Tests
+
+- `__test__/helpers.ts` — `createTestRuntime()` no longer constructs a `StepEngine`; it now wires an `HTTPRouter` into the `Runtime` (matching `sinwan-engine` v1.1.0's `Runtime` shape). Re-exports drop `StepEngine`
+- `__test__/server.test.ts` — the "sinwan pipeline response" integration suite was renamed to "grpc:call listener response" and rewritten to register a `grpc:call` bus listener instead of adding a step. Added a new test verifying that `ctx.stop()` in a `grpc:call` listener yields `PERMISSION_DENIED`
+
+### Changed — Package
+
+- `package.json` — bumped to `0.1.1`; metadata fields (`author`, `licenseFilename`, `bugs`, `homepage`, `repository`, `license`) moved to the top of the file, ahead of `keywords`, for consistency with other Sinwan packages
+
+### Compatibility
+
+- Requires `sinwan-engine` >= 1.1.0 (where `StepEngine` is no longer exported and `Runtime` accepts `httpRouter` instead of `engine`)
+- No public API breakage for consumers who did not call `runtime.engine.run()` directly
+
+### Coverage
+
+- `bun test` passes with 215/215 tests across 14 files
+- `src/server.ts` line coverage remains 100%
+
 ## [0.1.0] — 2026-07-09 — Initial Release
 
 Production-ready gRPC support for Sinwan Engine, built on `@grpc/grpc-js` and `@grpc/proto-loader`. Implements the `GRPCProvider` interface from `sinwan-engine` with a typed gRPC router, client, and 11 feature modules.

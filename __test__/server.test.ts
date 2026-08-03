@@ -1132,18 +1132,14 @@ describe("GRPCRouter", () => {
     });
   });
 
-  // ─── Integration: sinwan pipeline response ───────────────
+  // ─── Integration: grpc:call listener response ───────────
 
-  describe("integration: sinwan pipeline response", () => {
-    test("pipeline that responds triggers responseToGRPCError", async () => {
-      // Create a runtime with a step that sets a response
+  describe("integration: grpc:call listener response", () => {
+    test("grpc:call listener that responds triggers responseToGRPCError", async () => {
+      // A grpc:call bus listener can reject a call by setting a response.
       const runtime = createTestRuntime();
-      runtime.engine.add({
-        name: "respond-step",
-        run: (ctx) => {
-          ctx.json({ error: "blocked by middleware" }, 403);
-          return { type: "continue" as const };
-        },
+      runtime.bus.on("grpc:call", (ctx) => {
+        ctx.json({ error: "blocked by middleware" }, 403);
       });
 
       router.grpc("test", makeServiceConfig());
@@ -1174,6 +1170,46 @@ describe("GRPCRouter", () => {
         expect(error).toBeDefined();
         expect(error!.code).toBe(grpc.status.PERMISSION_DENIED);
         expect(error!.details).toContain("blocked by middleware");
+        client.close();
+      } finally {
+        await handle.stop();
+      }
+    });
+
+    test("grpc:call listener that calls ctx.stop() triggers PERMISSION_DENIED", async () => {
+      const runtime = createTestRuntime();
+      runtime.bus.on("grpc:call", (ctx) => {
+        ctx.stop();
+      });
+
+      router.grpc("test", makeServiceConfig());
+      const handle = await router.listen(runtime, {
+        port: 0,
+      } as GRPCListenOptions);
+
+      try {
+        const loaded = loadGRPCService({
+          proto: PROTO_PATH,
+          package: "test.v1",
+          service: "TestService",
+        });
+        const client = new loaded.clientConstructor(
+          `localhost:${handle!.port}`,
+          grpc.credentials.createInsecure(),
+        ) as unknown as grpc.Client & {
+          SayHello: (
+            req: { name: string },
+            cb: (err: grpc.ServiceError | null, resp: unknown) => void,
+          ) => void;
+        };
+
+        const error = await new Promise<grpc.ServiceError | null>((resolve) => {
+          client.SayHello({ name: "test" }, (err) => resolve(err));
+        });
+
+        expect(error).toBeDefined();
+        expect(error!.code).toBe(grpc.status.PERMISSION_DENIED);
+        expect(error!.details).toContain("stopped");
         client.close();
       } finally {
         await handle.stop();
